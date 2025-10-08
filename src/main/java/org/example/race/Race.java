@@ -1,32 +1,37 @@
 package org.example.race;
 
+import java.util.List;
+
 public class Race {
     public static void main(String[] args) throws InterruptedException {
         int distance = 30;
-        RaceMonitor monitor = new RaceMonitor();
 
-        Animal tortue = new Animal("Tortue", "🐢", distance, monitor);
-        Animal lapin = new Animal("Lapin", "🐇", distance, monitor);
-        Animal cheval = new Animal("Cheval", "🐎", distance, monitor);
+        RaceMonitor monitor = new RaceMonitor(distance);
 
-        // Lancer les threads
-        tortue.start();
-        lapin.start();
-        cheval.start();
+        List<Animal> animaux = List.of(
+                new Tortue(distance, monitor),
+                new Lapin(distance, monitor),
+                new Cheval(distance, monitor)
+        );
 
-        // Attendre que tous les threads terminent
-        tortue.join();
-        lapin.join();
-        cheval.join();
+        // Créer et démarrer le thread arbitre
+        Arbitre arbitre = new Arbitre(animaux, monitor);
+        arbitre.start();
 
-        // Afficher classement final
-        System.out.println("\n📋 Classement final :");
-        int rank = 1;
-        for (Animal a : monitor.getFinishedAnimals()) {
-            System.out.println(rank + ". " + a.getAnimalName());
-            rank++;
+        System.out.println("=== DÉPART DE LA COURSE ===\n");
+
+        // Démarrer tous les animaux
+        animaux.forEach(Thread::start);
+
+        // Attendre la fin de tous les animaux
+        for (Animal a : animaux) {
+            a.join();
         }
 
-        System.out.println("\nCourse terminée !");
+        // Attendre la fin de l'arbitre
+        arbitre.join();
+
+        System.out.println("\n=== COURSE TERMINÉE ===");
+        monitor.printClassement();
     }
 }

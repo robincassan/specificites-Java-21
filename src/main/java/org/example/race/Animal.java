@@ -1,16 +1,13 @@
 package org.example.race;
 
-import java.util.Random;
+public sealed abstract class Animal extends Thread permits Tortue, Lapin, Cheval {
+    protected final String name;
+    protected final String emoji;
+    protected int position = 0;
+    protected final int distance;
+    protected final RaceMonitor monitor;
 
-public class Animal extends Thread {
-    private final String name;
-    private final String emoji;
-    private int position = 0;
-    private final int distance;
-    private final RaceMonitor monitor;
-    private final Random random = new Random();
-
-    public Animal(String name, String emoji, int distance, RaceMonitor monitor) {
+    protected Animal(String name, String emoji, int distance, RaceMonitor monitor) {
         this.name = name;
         this.emoji = emoji;
         this.distance = distance;
@@ -20,14 +17,13 @@ public class Animal extends Thread {
     @Override
     public void run() {
         while (position < distance && !monitor.isRaceFinished()) {
-            int step = 1 + random.nextInt(3); // avance 1 à 3 pas
-            position += step;
+            avancer();
             if (position > distance) position = distance;
 
             monitor.printPosition(this);
 
             try {
-                Thread.sleep(200 + random.nextInt(300)); // pause aléatoire
+                Thread.sleep(200 + (int)(Math.random() * 300));
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
@@ -37,12 +33,16 @@ public class Animal extends Thread {
                 monitor.setWinner(this);
             }
         }
-        // Enregistrer l'arrivée pour le classement
         monitor.addFinishedAnimal(this);
     }
 
+    // Méthode abstraite pour avancer selon le type d'animal
+    protected abstract void avancer();
+
+    // Getters
     public String getAnimalName() { return name; }
     public String getEmoji() { return emoji; }
     public int getPosition() { return position; }
     public int getDistance() { return distance; }
+
 }
