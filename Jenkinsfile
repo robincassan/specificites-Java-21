@@ -6,8 +6,8 @@ pipeline {
             steps {
                 echo 'Installation des dépendances...'
                 sh '''
-                    sudo apt-get update -y
-                    sudo apt-get install -y apache2
+                    apt-get update -y
+                    apt-get install -y apache2
                 '''
             }
         }
@@ -30,8 +30,8 @@ pipeline {
             steps {
                 echo 'Déploiement du nouveau site web...'
                 sh '''
-                    sudo rm -rf /var/www/html/*
-                    sudo cp -r * /var/www/html/
+                    rm -rf /var/www/html/*
+                    cp -r * /var/www/html/
                 '''
             }
         }
@@ -54,9 +54,9 @@ pipeline {
         always {
             echo ' Nettoyage du système...'
             sh '''
-                sudo rm -rf /var/www/html/*
-                sudo apt-get remove -y apache2
-                sudo apt-get autoremove -y
+                rm -rf /var/www/html/*
+                apt-get remove -y apache2
+                apt-get autoremove -y
             '''
         }
     }
