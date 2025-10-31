@@ -49,9 +49,9 @@ pipeline {
 
                     echo "Test du site..."
                     if curl -f http://localhost/; then
-                        echo "Test réussi ✅"
+                        echo "Test réussi "
                     else
-                        echo "Test échoué ❌"
+                        echo "Test échoué "
                         exit 1
                     fi
                 '''
