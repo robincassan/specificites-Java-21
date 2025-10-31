@@ -7,7 +7,7 @@ pipeline {
                 echo 'Installation des dépendances...'
                 sh '''
                     apt-get update -y
-                    apt-get install -y apache2
+                    apt-get install -y apache2 curl
                 '''
             }
         }
@@ -22,7 +22,10 @@ pipeline {
         stage('Backup') {
             steps {
                 echo 'Sauvegarde du site web existant...'
-                sh 'cp -r /var/www/html /var/www/html.backup || true'
+                sh '''
+                    mkdir -p /var/www/html.backup
+                    cp -r /var/www/html/* /var/www/html.backup/ || true
+                '''
             }
         }
 
@@ -38,26 +41,36 @@ pipeline {
 
         stage('Test') {
             steps {
-                echo 'Vérification du déploiement...'
-                sh 'curl -f http://localhost/ || (echo "Test échoué" && exit 1)'
+                echo 'Démarrage du serveur Apache...'
+                sh '''
+                    # Lancer Apache en arrière-plan
+                    apache2ctl -DFOREGROUND &
+                    sleep 3
+
+                    echo "Test du site..."
+                    if curl -f http://localhost/; then
+                        echo "Test réussi ✅"
+                    else
+                        echo "Test échoué ❌"
+                        exit 1
+                    fi
+                '''
             }
         }
     }
 
     post {
-        success {
-            echo ' Déploiement réussi !'
-        }
-        failure {
-            echo ' Échec du déploiement. Vérifiez les logs.'
-        }
         always {
             echo ' Nettoyage du système...'
             sh '''
-                rm -rf /var/www/html/*
+                pkill apache2 || true
                 apt-get remove -y apache2
                 apt-get autoremove -y
             '''
+        }
+
+        failure {
+            echo ' Échec du déploiement. Vérifiez les logs.'
         }
     }
 }
